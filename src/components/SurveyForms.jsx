@@ -65,15 +65,31 @@ function SurveyForms() {
         console.log("Updated responses:", updatedResponses);
     };
 
+    const handleOtherTextChange = (questionId, otherText) => {
+        const updatedResponses = [...userResponses];
+        const existingResponseIndex = updatedResponses.findIndex(
+            r => r.question_id == questionId
+        );
+
+        if(existingResponseIndex !== -1) {
+            updatedResponses[existingResponseIndex].other_text = otherText;
+        } else {
+            updatedResponses.push({
+                question_id: questionId,
+                other_text: otherText,
+            });
+        }
+
+        setUserResponses(updatedResponses);
+    };
+
     const generateRandomUserId = (min, max) => {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     };
 
     useEffect(() => {
         const surveyId = 1;
-
         async function fetchQuestionsAndChoies() {
-            
             try {
                 const questionResponse = await axios.get(`http://localhost:5010/api/Survey/questions?surveyId=${surveyId}`);
                 const questions = questionResponse.data;
@@ -107,16 +123,16 @@ function SurveyForms() {
                                         type={question.allowMultiple ? "checkbox" : "radio"} 
                                         name={`question_${question.question_id}`} 
                                         value={choice.choice_id} 
-                                        onChange={() => handleChoiceChange(question.question_id, choice.choice_id, question.allowMultiple)}
+                                        onChange={() => handleChoiceChange(question.question_id, choice.choice_id, question.allowMultiple, choice.choice_text)}
                                         className="form-check-input"
-                                        />
+                                    />
                                     <label className="form-check-label">
                                         {choice.choice_text}
                                     </label>
                                     
                                     {/* {choice.choiceId === -1 && <input type="text" placeholder="Specify other" />} */}
                                     {choice.choice_text === '其他' && (
-                                        <input type="text" placeholder="Specify other" className="form-control" />
+                                        <input type="text" placeholder="請說明" className="form-control" onChange={e => handleOtherTextChange(question.question_id, e.target.value )} />
                                     )}
                                 </div>
                             ))}
